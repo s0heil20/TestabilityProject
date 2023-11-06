@@ -33,8 +33,8 @@ def parse_iscas_bench(filename):
     return inputs, outputs, gates
 
 # Usage
-inputs, outputs, gates = parse_iscas_bench('c17.bench')
+#inputs, outputs, gates = parse_iscas_bench('c17.bench')
 
-print('Inputs:', inputs)
-print('Outputs:', outputs)
-print('Gates:', gates)
+#print('Inputs:', inputs)
+#print('Outputs:', outputs)
+#print('Gates:', gates)
