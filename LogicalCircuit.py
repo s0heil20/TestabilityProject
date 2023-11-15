@@ -6,6 +6,18 @@ from ParserIscas import parse_iscas_bench
 class LogicalCircuit:
 
     def __init__(self, inputs: list, outputs: list, gates: dict):
+        # First scanning gates inputs for potential FANOUTS!
+        self.hasFanout = {}
+        for out_net in gates:
+            gate_name, gate_inputs = self._parse_gate(gates[out_net])
+            for input in gate_inputs:
+                if input in self.hasFanout:
+                    self.hasFanout[input] = True
+                else:
+                    self.hasFanout[input] = False
+            
+        
+
         self.gates = {}
         self.nets = {}
         self.outputs = []
@@ -27,7 +39,17 @@ class LogicalCircuit:
                 self.nets[out_net] = new_net
 
             output_of_gate = self.nets[out_net]
-            inputs_of_gate = [self.nets[input] for input in gate_inputs]
+            
+            inputs_of_gate = []
+            for input in gate_inputs:
+                if self.hasFanout[input]:
+                    new_fanout_net_id = input + "_" + self.nets[input].get_new_fan_out_net_name()
+                    new_fanouted_net = Connection(new_fanout_net_id, "NET")
+                    self.nets[input].fanouts.append(new_fanouted_net)
+                    inputs_of_gate.append(new_fanouted_net)
+                    self.nets[new_fanout_net_id] = new_fanouted_net
+                else:
+                    inputs_of_gate.append(self.nets[input])
 
             if gate_name == "AND":
                 self.gates[out_net] = AndGate(inputs_of_gate, output_of_gate)
@@ -65,10 +87,13 @@ class LogicalCircuit:
     def simulate_input_vector(self, input_vector: dict) -> dict :
         for input in input_vector:
             self.nets[input].value = input_vector[input]
+            self.nets[input].apply_value_to_fanouts()
+                
             
         for out_net in self.gates:
             output_value = self.gates[out_net].perform_logic()
             self.nets[out_net].value = output_value
+            self.nets[out_net].apply_value_to_fanouts()
 
         output_vector = {}
         for output in self.outputs:
@@ -83,7 +108,7 @@ class LogicalCircuit:
 
 inputs, outputs, gates = parse_iscas_bench('c17.bench')
 LC = LogicalCircuit(inputs, outputs, gates)
-LC.simulate_input_vector( {'1': 1, '2': 0, '3': 1, '6': 1, '7': 1})
+LC.simulate_input_vector( {'1': 0, '2': 0, '3': 1, '6': 1, '7': 0})
 LC.print_net_values()
 
 
