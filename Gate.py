@@ -10,6 +10,10 @@ class Gate(ABC):
     def perform_logic(self):
         pass
 
+    @abstractmethod    
+    def perform_deductive_fault_simulation(self):
+        pass
+
 class AndGate(Gate):
     def perform_logic(self):
         if all(input.value == 1 for input in self.inputs):
@@ -18,6 +22,28 @@ class AndGate(Gate):
             return 0
         else:
             return 'U'
+    
+    def perform_deductive_fault_simulation(self):
+        control_value = 0
+
+        if any(input.value == control_value for input in self.inputs):
+            inputs_that_have_to_change = []
+            inputs_that_have_to_stay_the_same = []
+            for input in self.inputs:
+                if input.value == control_value:
+                    inputs_that_have_to_change.append(input.fault_set)
+                else:
+                    inputs_that_have_to_stay_the_same.append(input.fault_set)
+            
+            return (set.intersection(*inputs_that_have_to_change) - set.union(set(), *inputs_that_have_to_stay_the_same) ) | { self.output.id + '-sa' + str(1-self.output.value)}
+        else:
+            inputs_that_can_change = []
+            for input in self.inputs:
+                inputs_that_can_change.append(input.fault_set)
+            return set.union(set(), *inputs_that_can_change) | {self.output.id +'-sa'+str(1-self.output.value)}
+
+            
+
 
 class OrGate(Gate):
     def perform_logic(self):
@@ -27,6 +53,26 @@ class OrGate(Gate):
             return 1
         else:
             return 'U'
+        
+    def perform_deductive_fault_simulation(self):
+        control_value = 1
+
+
+        if any(input.value == control_value for input in self.inputs):
+            inputs_that_have_to_change = []
+            inputs_that_have_to_stay_the_same = []
+            for input in self.inputs:
+                if input.value == control_value:
+                    inputs_that_have_to_change.append(input.fault_set)
+                else:
+                    inputs_that_have_to_stay_the_same.append(input.fault_set)
+            
+            return (set.intersection(*inputs_that_have_to_change) - set.union(set(),*inputs_that_have_to_stay_the_same) ) | { self.output.id + '-sa' + str(1-self.output.value)}
+        else:
+            inputs_that_can_change = []
+            for input in self.inputs:
+                inputs_that_can_change.append(input.fault_set)
+            return set.union(set(), *inputs_that_can_change) | {self.output.id +'-sa'+str(1-self.output.value)}
 
 class NandGate(Gate):
     def perform_logic(self):
@@ -36,6 +82,26 @@ class NandGate(Gate):
             return 1
         else:
             return 'U'
+    
+    def perform_deductive_fault_simulation(self):
+        control_value = 0
+        inversion = 1
+
+        if any(input.value == control_value for input in self.inputs):
+            inputs_that_have_to_change = []
+            inputs_that_have_to_stay_the_same = []
+            for input in self.inputs:
+                if input.value == control_value:
+                    inputs_that_have_to_change.append(input.fault_set)
+                else:
+                    inputs_that_have_to_stay_the_same.append(input.fault_set)
+            
+            return (set.intersection(*inputs_that_have_to_change) - set.union(set(),*inputs_that_have_to_stay_the_same) ) | { self.output.id + '-sa' + str(1-self.output.value)}
+        else:
+            inputs_that_can_change = []
+            for input in self.inputs:
+                inputs_that_can_change.append(input.fault_set)
+            return set.union(set(), *inputs_that_can_change) | {self.output.id +'-sa'+str(1-self.output.value)}
 
 class NorGate(Gate):
     def perform_logic(self):
@@ -45,6 +111,26 @@ class NorGate(Gate):
             return 0
         else:
             return 'U'
+        
+    def perform_deductive_fault_simulation(self):
+        control_value = 1
+        inversion = 1
+
+        if any(input.value == control_value for input in self.inputs):
+            inputs_that_have_to_change = []
+            inputs_that_have_to_stay_the_same = []
+            for input in self.inputs:
+                if input.value == control_value:
+                    inputs_that_have_to_change.append(input.fault_set)
+                else:
+                    inputs_that_have_to_stay_the_same.append(input.fault_set)
+            
+            return (set.intersection(*inputs_that_have_to_change) - set.union(set(),*inputs_that_have_to_stay_the_same) ) | { self.output.id + '-sa' + str(1-self.output.value)}
+        else:
+            inputs_that_can_change = []
+            for input in self.inputs:
+                inputs_that_can_change.append(input.fault_set)
+            return set.union(set(), *inputs_that_can_change) | {self.output.id +'-sa'+str(1-self.output.value)}
 
 class XorGate(Gate):
     def perform_logic(self):
@@ -84,6 +170,9 @@ class NotGate(Gate):
             return 1
         else:
             return 0
+        
+    def perform_deductive_fault_simulation(self):
+        return self.inputs[0].fault_set | {self.output.id+"-sa"+str(1-self.output.value)}
 
 
 class BufferGate(Gate):
@@ -94,5 +183,8 @@ class BufferGate(Gate):
             return 'U'
         else:
             return self.inputs[0].value
+    
+    def perform_deductive_fault_simulation(self):
+        return self.inputs[0].fault_set | {self.output.id+"-sa"+str(1-self.output.value)}
 
 

@@ -17,6 +17,10 @@ class Connection:
         for fanout in self.fanouts:
             fanout.value = self.value
 
+    def apply_fault_to_fanouts(self):
+        for fanout in self.fanouts:
+            fanout.fault_set = self.fault_set | {fanout.id + "-sa" + str(1-fanout.value)}
+
     def __eq__(self, other) -> bool:
         if type(self) != type(other):
             return False

@@ -21,8 +21,11 @@ class LogicalCircuit:
         self.gates = {}
         self.nets = {}
         self.outputs = []
+        self.inputs = []
+
         for input in inputs:
             new_input = Connection(input, "IN")
+            self.inputs.append( new_input )
             if input not in self.nets:
                 self.nets[input] = new_input
         for output in outputs:
@@ -101,6 +104,26 @@ class LogicalCircuit:
 
         return output_vector
     
+    def simulate_deductive_fault(self):
+        # Checking if all the nets have a logical value!
+        for net in self.nets:
+            if self.nets[net].value == 'U' or self.nets[net].value == 'Z':
+                print("ALL NETS MUST BE 0/1 FOR DEDUCTIVE TO WORK!")
+                return
+        # Applying fault to PIs!
+        for input in self.inputs:
+            input.fault_set = {input.id + "-sa" + str(1-input.value)}
+            input.apply_fault_to_fanouts()
+
+        for out_net in self.gates:
+            self.nets[out_net].fault_set = self.gates[out_net].perform_deductive_fault_simulation()
+            self.nets[out_net].apply_fault_to_fanouts()
+
+    def print_net_fault_sets(self):
+        for net in self.nets:
+            print("net : " + net + " -> "+str(self.nets[net].fault_set))
+        
+    
     def print_net_values(self):
         for net in self.nets:
             print("net : " + net + " -> "+ str(self.nets[net].value))
@@ -108,7 +131,9 @@ class LogicalCircuit:
 
 inputs, outputs, gates = parse_iscas_bench('c17.bench')
 LC = LogicalCircuit(inputs, outputs, gates)
-LC.simulate_input_vector( {'1': 0, '2': 0, '3': 1, '6': 1, '7': 0})
+LC.simulate_input_vector( {'1': 1, '2': 0, '3': 1, '6': 1, '7': 1})
 LC.print_net_values()
+LC.simulate_deductive_fault()
+LC.print_net_fault_sets()
 
 
