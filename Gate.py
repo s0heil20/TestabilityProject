@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from Connection import Connection
+import itertools
 
 class Gate(ABC):
     def __init__(self, inputs, output):
@@ -139,12 +140,33 @@ class XorGate(Gate):
         # else we have to count the number of ones!
         no_ones = 0
         for input in self.inputs:
-            if input.value == 0:
+            if input.value == 1:
                 no_ones += 1
         if no_ones % 2 == 1:
             return 1
         else:
             return 0
+    
+    def perform_deductive_fault_simulation(self):
+        all_possible_changes = []
+        for i in range(1, len(self.inputs) + 1):
+            if i % 2 == 1:
+                inputs_that_have_to_change = list(itertools.combinations(self.inputs, i))
+                for candidate in inputs_that_have_to_change:
+                    includings = []
+                    excludings = []
+                    for input in self.inputs:
+                        if input in candidate:
+                            includings.append(input.fault_set)
+                        else:
+                            excludings.append(input.fault_set)
+                    possible_change = set.intersection(*includings)
+                    for ex in excludings:
+                        possible_change = possible_change - ex
+                    all_possible_changes.append(possible_change)
+                    print("EX:", str(excludings) , " ", "IN:", str(includings), "POS:", str(possible_change))
+        return set.union(*all_possible_changes)  | {self.output.id + "-sa" + str(1 - self.output.value)}                   
+                    
 
 class XnorGate(Gate):
     def perform_logic(self):
@@ -153,12 +175,32 @@ class XnorGate(Gate):
         # else we have to count the number of ones!
         no_ones = 0
         for input in self.inputs:
-            if input.value == 0:
+            if input.value == 1:
                 no_ones += 1
         if no_ones % 2 == 1:
             return 0
         else:
             return 1
+        
+    def perform_deductive_fault_simulation(self):
+        all_possible_changes = []
+        for i in range(1, len(self.inputs) + 1):
+            if i % 2 == 1:
+                inputs_that_have_to_change = list(itertools.combinations(self.inputs, i))
+                for candidate in inputs_that_have_to_change:
+                    includings = []
+                    excludings = []
+                    for input in self.inputs:
+                        if input in candidate:
+                            includings.append(input.fault_set)
+                        else:
+                            excludings.append(input.fault_set)
+                    possible_change = set.intersection(*includings)
+                    for ex in excludings:
+                        possible_change = possible_change - ex
+                print("EX:", str(excludings) , " ", "IN:", str(includings), "POS:", str(possible_change))
+                all_possible_changes.append(possible_change)
+        return set.union(*all_possible_changes) | {self.output.id + "-sa" + str(1 - self.output.value)}        
 
 class NotGate(Gate):
     def perform_logic(self):

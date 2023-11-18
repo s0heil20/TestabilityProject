@@ -129,11 +129,12 @@ class LogicalCircuit:
             print("net : " + net + " -> "+ str(self.nets[net].value))
 
 
-inputs, outputs, gates = parse_iscas_bench('c17.bench')
+inputs, outputs, gates = parse_iscas_bench('xor.bench')
 LC = LogicalCircuit(inputs, outputs, gates)
-LC.simulate_input_vector( {'1': 1, '2': 0, '3': 1, '6': 1, '7': 1})
+LC.simulate_input_vector( {'1': 1, '2': 0, '3': 0})
 LC.print_net_values()
 LC.simulate_deductive_fault()
 LC.print_net_fault_sets()
+
 
 
