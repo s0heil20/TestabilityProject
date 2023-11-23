@@ -164,7 +164,7 @@ class XorGate(Gate):
                     for ex in excludings:
                         possible_change = possible_change - ex
                     all_possible_changes.append(possible_change)
-                    print("EX:", str(excludings) , " ", "IN:", str(includings), "POS:", str(possible_change))
+                    # print("EX:", str(excludings) , " ", "IN:", str(includings), "POS:", str(possible_change))
         return set.union(*all_possible_changes)  | {self.output.id + "-sa" + str(1 - self.output.value)}                   
                     
 
@@ -198,7 +198,7 @@ class XnorGate(Gate):
                     possible_change = set.intersection(*includings)
                     for ex in excludings:
                         possible_change = possible_change - ex
-                print("EX:", str(excludings) , " ", "IN:", str(includings), "POS:", str(possible_change))
+                # print("EX:", str(excludings) , " ", "IN:", str(includings), "POS:", str(possible_change))
                 all_possible_changes.append(possible_change)
         return set.union(*all_possible_changes) | {self.output.id + "-sa" + str(1 - self.output.value)}        
 
