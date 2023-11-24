@@ -179,8 +179,4 @@ class LogicalCircuit:
                 
 inputs, outputs, gates = parse_iscas_bench('test3.txt')
 LC = LogicalCircuit(inputs, outputs, gates)
-LC.simulate_random_input()
-# LC.simulate_random_input(include_U_or_Z=True)
-
-
-
+LC.run("test3_input4.txt")
