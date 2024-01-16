@@ -141,20 +141,11 @@ class LogicalCircuit:
             for input in input_vector:
                 f.write(str(input_vector[input]) + ' ')
     
-    def run(self, filename):
+    def run(self, input_vector):
         # reading the input file
-        input_vector = {}
-        with open(filename, 'r') as f:
-            input_ids = f.readline().strip().split(' ')
-            input_values = f.readline().strip().split(' ')
-            for id, value in zip(input_ids, input_values):
-                if value == '1' or value == '0':
-                    input_vector[id] = int(value)
-                else:
-                    input_vector[id] = value
         self.simulate_input_vector(input_vector)
         self.simulate_deductive_fault()
-        self.write_results_to("results_of_" + filename + ".txt")
+        # self.write_results_to("res")
 
 
     def print_net_fault_sets(self):
@@ -177,6 +168,6 @@ class LogicalCircuit:
             for net in self.nets:
                 f.write("net : " + net + " -> " + str(self.nets[net].fault_set )+ '\n')
                 
-inputs, outputs, gates = parse_iscas_bench('test3.txt')
-LC = LogicalCircuit(inputs, outputs, gates)
-LC.run("test3_input4.txt")
+# inputs, outputs, gates = parse_iscas_bench('test3.txt')
+# LC = LogicalCircuit(inputs, outputs, gates)
+# LC.run("test3_input4.txt")
