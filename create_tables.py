@@ -2,6 +2,8 @@ import itertools
 import ParserIscas
 from tabulate import tabulate
 from LogicalCircuit import LogicalCircuit
+import json
+
 def generate_binary_permutations(n):
     return list(itertools.product([0, 1], repeat=n))
 
@@ -10,6 +12,7 @@ class FaultTable:
     def __init__(self, inputs, outputs, gates, permutations) -> None:
         self.fault_table = {}
         self.test_set = []
+        self.essential_vectors = set()
         self.inputs = inputs
         self.outputs = outputs
         self.gates = gates
@@ -33,7 +36,9 @@ class FaultTable:
 
     def create_fault_table(self,):
         faults_list = self.create_all_faults()
-
+        faults_covered_num = {}
+        for fault in faults_list:
+            faults_covered_num[fault] = 0
         for p in self.permutations:
             input_vector = {}
             for i in range(input_size):
@@ -52,34 +57,56 @@ class FaultTable:
                 else:
                     table_row[fault] = 'No'
             self.fault_table[p] = table_row
-        
+    
+    def get_essential_vectors(self, ):
+        faults_list = self.create_all_faults()
+        reversed_fault_table = {}
+        for fault in faults_list:
+            reversed_fault_table[fault] = []
+        for vector, list in self.fault_table.items():
+            for fault, result in list.items():
+                if result == 'Yes':
+                    reversed_fault_table[fault].append(vector)
+        for fault, vectors in reversed_fault_table.items():
+            if len(vectors) == 1:
+                self.essential_vectors.add(vectors[0])
+
 
     def get_test_vectors(self, ):
-        faults_list = self.create_all_faults()
-
+        uncovered_faults = self.create_all_faults()
         for p in self.permutations:
-            if not faults_list:
+            if not uncovered_faults:
                 break
             covered_faults_in_set = [key for key, value in self.fault_table[p].items() if value == 'Yes']
-            common_elements = set(faults_list).intersection(set(covered_faults_in_set))
+            common_elements = set(uncovered_faults).intersection(set(covered_faults_in_set))
             if not common_elements:
                 continue
             self.test_set.append(p)
             for element in common_elements:
                 try:
-                    faults_list.remove(element)
+                    uncovered_faults.remove(element)
                 except ValueError:
                     pass
-        if faults_list:
+        
+        if uncovered_faults:
             self.covers_all_faults = False
         else:
             self.covers_all_faults = True
+    
+    def write_fault_table(self, file_name):
 
-# All the permutations 
-inputs, outputs, gates = ParserIscas.parse_iscas_bench("test3.txt")
+        with open(file_name+'_table', 'w') as f:  
+            for key, value in self.fault_table.items():  
+                f.write('%s:%s\n' % (key, value))
+
+file_name = 'test2.txt'
+inputs, outputs, gates = ParserIscas.parse_iscas_bench(file_name)
 input_size = len(inputs)
 permutations = generate_binary_permutations(input_size)
 fault_table = FaultTable(inputs, outputs, gates, permutations)
 fault_table.create_fault_table()
 fault_table.get_test_vectors()
-print(fault_table.covers_all_faults)
+fault_table.get_essential_vectors()
+fault_table.write_fault_table(file_name)
+print(f'essential vectors: {fault_table.essential_vectors}')
+print(f'all the test vectors: {fault_table.test_set}')

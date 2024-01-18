@@ -3,7 +3,6 @@ from Connection import Connection
 from Gate import *
 from ParserIscas import parse_iscas_bench
 import random
-
 class LogicalCircuit:
 
     def __init__(self, inputs: list, outputs: list, gates: dict):
